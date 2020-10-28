@@ -41,26 +41,28 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_version: 0.12.25
 
-    - name: Login via Azure CLI
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURERM_SPN }}
-
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       env:
         TF_ACTION_WORKING_DIR: ./terraform  
       run: |
         az account show
+
+        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientId')
+        ARM_CLIENT_SECRET=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientSecret')
+        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.subscriptionId')
+        ARM_TENANT_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.tenantId')
+
+
         terraform init \
           -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
           -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
           -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
           -backend-config="key=${{ secrets.STATE_FILE }}"
-          # -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
-          # -backend-config="tenant_id=$ARM_TENANT_ID" \
-          # -backend-config="client_id=$ARM_CLIENT_ID" \
-          # -backend-config="client_secret=$ARM_CLIENT_SECRET"
+          -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
+          -backend-config="tenant_id=$ARM_TENANT_ID" \
+          -backend-config="client_id=$ARM_CLIENT_ID" \
+          -backend-config="client_secret=$ARM_CLIENT_SECRET"
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
@@ -73,6 +75,10 @@ jobs:
       env:
         TF_ACTION_WORKING_DIR: ./terraform  
       run: |
+        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientId')
+        ARM_CLIENT_SECRET=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientSecret')
+        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.subscriptionId')
+        ARM_TENANT_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.tenantId')
         terraform plan \
           -out azfunc.tfplan \
           -input=false \

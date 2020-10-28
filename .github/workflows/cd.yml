@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ACTION_WORKING_DIR: ./terraform
-    #   ARM_CLIENT_ID: ${{secrets.CLIENT_ID}}
-    #   ARM_CLIENT_SECRET: ${{secrets.CLIENT_SECRET}}
-    #   ARM_SUBSCRIPTION_ID: ${{secrets.SUBSCRIPTION_ID}}
-    #   ARM_TENANT_ID: ${{secrets.TENANT_ID}}
+      ARM_CLIENT_ID: $(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientId')
+      # ARM_CLIENT_SECRET: "$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientSecret')"
+      # ARM_SUBSCRIPTION_ID: ${{secrets.SUBSCRIPTION_ID}}
+      # ARM_TENANT_ID: ${{secrets.TENANT_ID}}
     #   STATE_RG:  ${{secrets.RESOURCE_GROUP_NAME}}
     #   STATE_STORAGE:  ${{secrets.STORAGE_ACCOUNT_NAME}}
     #   STATE_CONTAINER:  ${{secrets.CONTAINER_NAME}}
@@ -41,7 +41,7 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_version: 0.12.25
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+        # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       env:
         TF_ACTION_WORKING_DIR: ./terraform  

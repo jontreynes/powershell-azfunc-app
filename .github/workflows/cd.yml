@@ -48,6 +48,10 @@ jobs:
       run: |
         az account show
 
+        echo "does echo work?"
+
+        jq
+
         ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientId')
         ARM_CLIENT_SECRET=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientSecret')
         ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.subscriptionId')

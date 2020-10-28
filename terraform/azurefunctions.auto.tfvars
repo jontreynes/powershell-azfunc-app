@@ -35,25 +35,25 @@ function_apps = {
     auth_settings           = null
     connection_strings      = null
     version                 = "~3"
-    site_config             = {
+    site_config = {
       ftps_state                       = null
       http2_enabled                    = null
       linux_fx_version                 = null
       linux_fx_version_local_file_path = null
       min_tls_version                  = null
       websockets_enabled               = null
-      cors = null
+      cors                             = null
       ip_restrictions = [{
-        ip_address                      = "0.0.0.0/0"
-        virtual_network_subnet_id       = null
-        subnet_id                       = null
-        subnet_mask                     = null
-        name                            = null
-        priority                        = 100
-        action                          = "Deny"        
+        ip_address                = "0.0.0.0/0"
+        virtual_network_subnet_id = null
+        subnet_id                 = null
+        subnet_mask               = null
+        name                      = null
+        priority                  = 100
+        action                    = "Deny"
       }]
     }
-    enable_monitoring       = false
+    enable_monitoring = false
   }
 }
 

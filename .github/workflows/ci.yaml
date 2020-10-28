@@ -31,21 +31,23 @@ jobs:
         # prepping the Azure Function zipdeploy package
         # https://docs.microsoft.com/en-us/azure/azure-functions/deployment-zip-push
 
-        # create a staging directory
+        echo "Creating a staging directory"
         mkdir build
-        
-        # copy only azure function artifacts to staging directory
-        # cp -r !(.vscode|.gitignore|.terraform|.funcignore|terraform|build) ./build
 
+        echo "---------------------------------------------"
+        
+        echo "Copying only Azure Function artifacts to the staging directory"
         rsync -av . ./build/ --exclude=.vscode --exclude=.gitignore --exclude=.terraform --exclude=.funcignore --exclude=terraform --exclude=build
 
+        echo "---------------------------------------------"
+
         # output all files in staging directory
+        echo "The contents of the CI Artifact is below:"
         ls -R ./build
 
     # Would be nice to have a pester test here
 
-
-    - name: Upload artifact NPM package
+    - name: Upload Artifact PowerShell Package
       uses: actions/upload-artifact@v1
       with:
         name: node-package

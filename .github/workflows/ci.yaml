@@ -1,0 +1,54 @@
+name: 'continuous_integration'
+
+on:
+  push:
+    branches:
+    - master
+    - users/**
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set Node.js 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    - name: Install
+      run: npm clean-install
+    
+    - name: Verify
+      if: runner.os == 'Linux'
+      run: |
+        npm run build
+
+    # - name: Test
+    #   run: npm test
+
+    # - name: Lint
+    #   run: npm run lint
+
+    # - name: Format
+    #   run: npm run format-check
+
+    - name: Upload artifact NPM package
+      uses: actions/upload-artifact@v1
+      with:
+        name: node-package
+        path: ./dist

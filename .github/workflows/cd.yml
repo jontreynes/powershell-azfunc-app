@@ -1,0 +1,134 @@
+name: 'continuous_deployment'
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    # types: [closed]
+    # branches:
+    #   - master
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    env:
+      ARM_CLIENT_ID: ${{secrets.CLIENT_ID}}
+      ARM_CLIENT_SECRET: ${{secrets.CLIENT_SECRET}}
+      ARM_SUBSCRIPTION_ID: ${{secrets.SUBSCRIPTION_ID}}
+      ARM_TENANT_ID: ${{secrets.TENANT_ID}}
+      STATE_RG:  ${{secrets.RESOURCE_GROUP_NAME}}
+      STATE_STORAGE:  ${{secrets.STORAGE_ACCOUNT_NAME}}
+      STATE_CONTAINER:  ${{secrets.CONTAINER_NAME}}
+      STATE_FILE:  ${{secrets.KEY}}
+      TF_ACTION_WORKING_DIR: ./terraform  
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.TF_ACTION_WORKING_DIR }}
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        terraform_version: 0.12.25
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      env:
+        TF_ACTION_WORKING_DIR: ./terraform  
+      run: |
+        terraform init \
+          -backend-config="resource_group_name=$STATE_RG" \
+          -backend-config="storage_account_name=$STATE_STORAGE" \
+          -backend-config="container_name=$STATE_CONTAINER" \
+          -backend-config="key=$STATE_FILE" \
+          -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
+          -backend-config="tenant_id=$ARM_TENANT_ID" \
+          -backend-config="client_id=$ARM_CLIENT_ID" \
+          -backend-config="client_secret=$ARM_CLIENT_SECRET"
+
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format
+      env:
+        TF_ACTION_WORKING_DIR: ./terraform  
+      run: terraform fmt -check
+
+    # Generates an execution plan for Terraform
+    - name: Terraform Plan
+      env:
+        TF_ACTION_WORKING_DIR: ./terraform  
+      run: |
+        terraform plan \
+          -out azfunc.tfplan \
+          -input=false \
+          -var="subscription_id=$ARM_SUBSCRIPTION_ID" \
+          -var="tenant_id=$ARM_TENANT_ID" \
+          -var="client_id=$ARM_CLIENT_ID" \
+          -var="client_secret=$ARM_CLIENT_SECRET" 
+    - name: Terraform Apply
+      env:
+        TF_ACTION_WORKING_DIR: ./terraform  
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+      run: |
+        terraform apply azfunc.tfplan
+
+  deploy:
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    name: 'Deploy'
+    needs: terraform
+    runs-on: ubuntu-latest
+    env:
+      APP_WORKING_DIRECTORY: ./
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Wait for Continuous Integration to Succeed
+      uses: fountainhead/action-wait-for-check@v1.0.0
+      id: wait-for-build
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        checkName: 'Test (ubuntu-latest)'
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+    - name: Download artifact NPM package
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        workflow: ci.yaml
+        branch: master
+        name: node-package
+        path: ./build/dist
+
+    - name: Display structure of downloaded files
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      run: ls -R
+      working-directory: ./build/dist
+
+    - name: Login via Azure CLI
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURERM_SPN }}
+
+    - name: Azure Functions Action
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: Azure/functions-action@v1.1.5
+      with:
+        # Name of the Azure Function App
+        app-name: mykvapp1027
+        # Path to package or folder. *.zip or a folder to deploy
+        package: ./build
+        # slot-name: # optional
+        # Publish profile (*.publishsettings) file contents with web deploy secrets

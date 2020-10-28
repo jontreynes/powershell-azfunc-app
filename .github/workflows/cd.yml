@@ -14,14 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ACTION_WORKING_DIR: ./terraform
-      # ARM_CLIENT_ID: $(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientId')
-      # ARM_CLIENT_SECRET: "$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientSecret')"
-      # ARM_SUBSCRIPTION_ID: ${{secrets.SUBSCRIPTION_ID}}
-      # ARM_TENANT_ID: ${{secrets.TENANT_ID}}
-    #   STATE_RG:  ${{secrets.RESOURCE_GROUP_NAME}}
-    #   STATE_STORAGE:  ${{secrets.STORAGE_ACCOUNT_NAME}}
-    #   STATE_CONTAINER:  ${{secrets.CONTAINER_NAME}}
-    #   STATE_FILE:  ${{secrets.KEY}}
+      ARM_CLIENT_ID: ${{secrets.ARM_CLIENT_ID}}
+      ARM_CLIENT_SECRET: ${{secrets.ARM_CLIENT_SECRET}}
+      ARM_SUBSCRIPTION_ID: ${{secrets.ARM_SUBSCRIPTION_ID}}
+      ARM_TENANT_ID: ${{secrets.ARM_TENANT_ID}}
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -41,59 +37,47 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_version: 0.12.25
 
-    # - name: Get Credentials
-    #   shell: bash
-    #   run: |
-
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       shell: bash
       env:
-        TF_ACTION_WORKING_DIR: ./terraform  
+        #TF_ACTION_WORKING_DIR: ./terraform  
       run: |
-
-        ARM_CLIENT_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.clientId')
-        ARM_CLIENT_SECRET=$(echo ${{ secrets.AZURERM_SPN }} | jq '.clientSecret')
-        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.subscriptionId')
-        ARM_TENANT_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.tenantId')
-
-
         terraform init \
           -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
           -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
           -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
-          -backend-config="key=${{ secrets.STATE_FILE }}" \
-          -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
-          -backend-config="tenant_id=$ARM_TENANT_ID" \
-          -backend-config="client_id=$ARM_CLIENT_ID" \
-          -backend-config="client_secret=$ARM_CLIENT_SECRET"
+          -backend-config="key=${{ secrets.STATE_FILE }}"
+          # -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
+          # -backend-config="tenant_id=$ARM_TENANT_ID" \
+          # -backend-config="client_id=$ARM_CLIENT_ID" \
+          # -backend-config="client_secret=$ARM_CLIENT_SECRET"
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
+      shell: bash
       env:
-        TF_ACTION_WORKING_DIR: ./terraform  
+        #TF_ACTION_WORKING_DIR: ./terraform  
       run: terraform fmt -check
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
+      shell: bash
       env:
-        TF_ACTION_WORKING_DIR: ./terraform  
+        #TF_ACTION_WORKING_DIR: ./terraform  
       run: |
-        ARM_CLIENT_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.clientId')
-        ARM_CLIENT_SECRET=$(echo ${{ secrets.AZURERM_SPN }} | jq '.clientSecret')
-        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.subscriptionId')
-        ARM_TENANT_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.tenantId')
         terraform plan \
           -out azfunc.tfplan \
-          -input=false \
-          -var="subscription_id=$ARM_SUBSCRIPTION_ID" \
-          -var="tenant_id=$ARM_TENANT_ID" \
-          -var="client_id=$ARM_CLIENT_ID" \
-          -var="client_secret=$ARM_CLIENT_SECRET" 
+          -input=false
+          # -var="subscription_id=$ARM_SUBSCRIPTION_ID" \
+          # -var="tenant_id=$ARM_TENANT_ID" \
+          # -var="client_id=$ARM_CLIENT_ID" \
+          # -var="client_secret=$ARM_CLIENT_SECRET" 
     - name: Terraform Apply
+      shell: bash
       env:
-        TF_ACTION_WORKING_DIR: ./terraform  
+        #TF_ACTION_WORKING_DIR: ./terraform  
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       run: |
         terraform apply azfunc.tfplan

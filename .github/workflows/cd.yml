@@ -97,6 +97,15 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Test (ubuntu-latest)'
         ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        timeoutSeconds: 600
+        intervalSeconds: 10
+
+    - name: Continuous Integration Failed
+      if: steps.wait-for-build.outputs.conclusion != 'success'
+      shell: bash
+      run: |
+        echo "Error! $The continuous Integration workflow has status of [{{steps.wait-for-build.outputs.conclusion}}]" 1>&2
+        exit 64
 
     - name: Download artifact NPM package
       if: steps.wait-for-build.outputs.conclusion == 'success'

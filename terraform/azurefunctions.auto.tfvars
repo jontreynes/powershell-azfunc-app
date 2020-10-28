@@ -35,6 +35,7 @@ function_apps = {
     auth_settings           = null
     connection_strings      = null
     version                 = "~3"
+    site_config             = null
     enable_monitoring       = false
   }
 }

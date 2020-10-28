@@ -52,9 +52,6 @@ jobs:
       env:
         TF_ACTION_WORKING_DIR: ./terraform  
       run: |
-        echo "does echo work?"
-
-        jq
 
         ARM_CLIENT_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientId')
         ARM_CLIENT_SECRET=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientSecret')

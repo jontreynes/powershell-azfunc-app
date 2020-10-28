@@ -12,7 +12,8 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
-    # env:
+    env:
+      TF_ACTION_WORKING_DIR: ./terraform
     #   ARM_CLIENT_ID: ${{secrets.CLIENT_ID}}
     #   ARM_CLIENT_SECRET: ${{secrets.CLIENT_SECRET}}
     #   ARM_SUBSCRIPTION_ID: ${{secrets.SUBSCRIPTION_ID}}
@@ -21,7 +22,6 @@ jobs:
     #   STATE_STORAGE:  ${{secrets.STORAGE_ACCOUNT_NAME}}
     #   STATE_CONTAINER:  ${{secrets.CONTAINER_NAME}}
     #   STATE_FILE:  ${{secrets.KEY}}
-    #   TF_ACTION_WORKING_DIR: ./terraform  
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:

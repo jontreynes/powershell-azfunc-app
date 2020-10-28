@@ -53,10 +53,10 @@ jobs:
         TF_ACTION_WORKING_DIR: ./terraform  
       run: |
 
-        ARM_CLIENT_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientId')
-        ARM_CLIENT_SECRET=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientSecret')
-        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.subscriptionId')
-        ARM_TENANT_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.tenantId')
+        ARM_CLIENT_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.clientId')
+        ARM_CLIENT_SECRET=$(echo ${{ secrets.AZURERM_SPN }} | jq '.clientSecret')
+        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.subscriptionId')
+        ARM_TENANT_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.tenantId')
 
 
         terraform init \
@@ -80,10 +80,10 @@ jobs:
       env:
         TF_ACTION_WORKING_DIR: ./terraform  
       run: |
-        ARM_CLIENT_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientId')
-        ARM_CLIENT_SECRET=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.clientSecret')
-        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.subscriptionId')
-        ARM_TENANT_ID=$(echo ${{ secrets.TF_API_TOKEN }} | jq '.tenantId')
+        ARM_CLIENT_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.clientId')
+        ARM_CLIENT_SECRET=$(echo ${{ secrets.AZURERM_SPN }} | jq '.clientSecret')
+        ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.subscriptionId')
+        ARM_TENANT_ID=$(echo ${{ secrets.AZURERM_SPN }} | jq '.tenantId')
         terraform plan \
           -out azfunc.tfplan \
           -input=false \

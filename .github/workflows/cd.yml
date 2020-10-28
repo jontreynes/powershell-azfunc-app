@@ -51,6 +51,7 @@ jobs:
       env:
         TF_ACTION_WORKING_DIR: ./terraform  
       run: |
+        az account show
         terraform init \
           -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
           -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \

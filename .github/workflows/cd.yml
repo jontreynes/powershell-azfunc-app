@@ -63,7 +63,7 @@ jobs:
           -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
           -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
           -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
-          -backend-config="key=${{ secrets.STATE_FILE }}"
+          -backend-config="key=${{ secrets.STATE_FILE }}" \
           -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
           -backend-config="tenant_id=$ARM_TENANT_ID" \
           -backend-config="client_id=$ARM_CLIENT_ID" \

@@ -41,7 +41,7 @@ jobs:
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       shell: bash
-      env:
+      # env:
         #TF_ACTION_WORKING_DIR: ./terraform  
       run: |
         terraform init \
@@ -57,14 +57,14 @@ jobs:
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
       shell: bash
-      env:
+      # env:
         #TF_ACTION_WORKING_DIR: ./terraform  
       run: terraform fmt -check
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
       shell: bash
-      env:
+      # env:
         #TF_ACTION_WORKING_DIR: ./terraform  
       run: |
         terraform plan \
@@ -76,7 +76,7 @@ jobs:
           # -var="client_secret=$ARM_CLIENT_SECRET" 
     - name: Terraform Apply
       shell: bash
-      env:
+      # env:
         #TF_ACTION_WORKING_DIR: ./terraform  
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       run: |

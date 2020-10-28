@@ -35,7 +35,9 @@ jobs:
         mkdir build
         
         # copy only azure function artifacts to staging directory
-        cp -r !(.vscode|.gitignore|.terraform|.funcignore|terraform|build) ./build
+        # cp -r !(.vscode|.gitignore|.terraform|.funcignore|terraform|build) ./build
+
+        rsync -av . ./build/ --exclude=.vscode --exclude=.gitignore --exclude=.terraform --exclude=.funcignore --exclude=terraform --exclude=build
 
         # output all files in staging directory
         ls -R ./build

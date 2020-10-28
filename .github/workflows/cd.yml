@@ -104,7 +104,7 @@ jobs:
       if: steps.wait-for-build.outputs.conclusion != 'success'
       shell: bash
       run: |
-        echo "Error! $The continuous Integration workflow has status of [{{steps.wait-for-build.outputs.conclusion}}]" 1>&2
+        echo "Error! $The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
         exit 64
 
     - name: Download artifact NPM package

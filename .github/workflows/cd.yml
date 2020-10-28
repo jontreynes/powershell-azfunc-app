@@ -49,10 +49,6 @@ jobs:
           -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
           -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
           -backend-config="key=${{ secrets.STATE_FILE }}"
-          # -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
-          # -backend-config="tenant_id=$ARM_TENANT_ID" \
-          # -backend-config="client_id=$ARM_CLIENT_ID" \
-          # -backend-config="client_secret=$ARM_CLIENT_SECRET"
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
@@ -69,11 +65,11 @@ jobs:
       run: |
         terraform plan \
           -out azfunc.tfplan \
-          -input=false
-          # -var="subscription_id=$ARM_SUBSCRIPTION_ID" \
-          # -var="tenant_id=$ARM_TENANT_ID" \
-          # -var="client_id=$ARM_CLIENT_ID" \
-          # -var="client_secret=$ARM_CLIENT_SECRET" 
+          -input=false \
+          -var="subscription_id=$ARM_SUBSCRIPTION_ID" \
+          -var="tenant_id=$ARM_TENANT_ID" \
+          -var="client_id=$ARM_CLIENT_ID" \
+          -var="client_secret=$ARM_CLIENT_SECRET" 
     - name: Terraform Apply
       shell: bash
       # env:

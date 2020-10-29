@@ -5,12 +5,11 @@ on:
     branches:
       - master
   pull_request:
-    # types: [closed]
     branches:
       - master
 jobs:
   terraform:
-    name: 'Terraform'
+    name: 'Deploy Infra'
     runs-on: ubuntu-latest
     env:
       TF_ACTION_WORKING_DIR: ./terraform
@@ -81,9 +80,9 @@ jobs:
       run: |
         terraform apply azfunc.tfplan
 
-  deploy:
+  deploy_dev:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-    name: 'Deploy'
+    name: 'Deploy App'
     needs: terraform
     runs-on: ubuntu-latest
     env:
@@ -167,3 +166,32 @@ jobs:
         package: ./build/dist
         # slot-name: # optional
         # Publish profile (*.publishsettings) file contents with web deploy secrets
+
+  terraform_stage:
+    name: 'Deploy Infra Stage'
+    runs-on: ubuntu-latest
+    env:
+      TF_ACTION_WORKING_DIR: ./terraform
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.TF_ACTION_WORKING_DIR }}
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v2
+      - name: Create issue
+        id: issue1
+        uses: toppulous/create-manual-approval-issue@v1
+        with:
+          label: stage-approval
+      - name: update issue
+        uses: toppulous/update-manual-approval-issue@v1
+        with:
+          issue-number: ${{ steps.issue1.outputs.issue-number }}
+          tag: ${{ github.sha }}
+          additional-info: |
+            some: additional fields

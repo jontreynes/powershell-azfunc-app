@@ -144,12 +144,12 @@ jobs:
       shell: bash
       run: |
         echo 'DEPLOY_CREDENTIAL<<EOF' >> $GITHUB_ENV
-        {  >> $GITHUB_ENV
-          "clientId": "${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}",  >> $GITHUB_ENV
-          "clientSecret": "${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}",  >> $GITHUB_ENV
-          "subscriptionId": "${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}",  >> $GITHUB_ENV
-          "tenantId": "${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}"  >> $GITHUB_ENV
-        } >> $GITHUB_ENV
+        echo '{' >> $GITHUB_ENV
+        echo '"clientId": "${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}",'  >> $GITHUB_ENV
+        echo '"clientSecret": "${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}",'  >> $GITHUB_ENV
+        echo '"subscriptionId": "${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}",'  >> $GITHUB_ENV
+        echo '"tenantId": "${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}"'  >> $GITHUB_ENV
+        echo '}' >> $GITHUB_ENV
         echo 'EOF' >> $GITHUB_ENV
 
     - name: Login via Azure CLI

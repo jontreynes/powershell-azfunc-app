@@ -183,15 +183,15 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v2
-      - name: Create issue
-        id: issue1
-        uses: toppulous/create-manual-approval-issue@v1
-        with:
-          label: stage-approval
-      - name: update issue
-        uses: toppulous/update-manual-approval-issue@v1
-        with:
-          issue-number: ${{ steps.issue1.outputs.issue-number }}
-          tag: ${{ github.sha }}
-          additional-info: |
-            some: additional fields
+    - name: Create issue
+      id: issue1
+      uses: toppulous/create-manual-approval-issue@v1
+      with:
+        label: stage-approval
+    - name: update issue
+      uses: toppulous/update-manual-approval-issue@v1
+      with:
+        issue-number: ${{ steps.issue1.outputs.issue-number }}
+        tag: ${{ github.sha }}
+        additional-info: |
+          some: additional fields

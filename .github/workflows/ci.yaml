@@ -50,5 +50,5 @@ jobs:
     - name: Upload Artifact PowerShell Package
       uses: actions/upload-artifact@v1
       with:
-        name: node-package
+        name: build-package
         path: ./build

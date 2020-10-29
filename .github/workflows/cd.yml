@@ -99,14 +99,14 @@ jobs:
         echo "Error! $The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
         exit 64
 
-    - name: Download artifact NPM package
+    - name: Download artifact package
       if: steps.wait-for-build.outputs.conclusion == 'success'
       uses: dawidd6/action-download-artifact@v2
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: ci.yaml
         branch: master
-        name: node-package
+        name: build-package
         path: ./build/dist
 
     - name: Display structure of downloaded files

@@ -77,6 +77,7 @@ variable "function_apps" {
     enabled                 = bool
     https_only              = bool
     assign_identity         = bool
+    user_ids                = list(string)
     version                 = string
     enable_monitoring       = bool
     auth_settings = object({

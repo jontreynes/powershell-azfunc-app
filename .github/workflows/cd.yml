@@ -14,10 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ACTION_WORKING_DIR: ./terraform
-      ARM_CLIENT_ID: ${{secrets.ARM_CLIENT_ID}}
-      ARM_CLIENT_SECRET: ${{secrets.ARM_CLIENT_SECRET}}
-      ARM_SUBSCRIPTION_ID: ${{secrets.ARM_SUBSCRIPTION_ID}}
-      ARM_TENANT_ID: ${{secrets.ARM_TENANT_ID}}
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -29,6 +25,16 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v2
+
+    - uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - uses: Azure/get-keyvault-secrets@v1.0
+      with:
+        keyvault: "simulationchicken"
+        secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
+      id: get_secret_action
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
@@ -43,6 +49,10 @@ jobs:
       shell: bash
       run: |
         terraform init \
+          -backend-config="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
+          -backend-config="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" \
+          -backend-config="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
+          -backend-config="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
           -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
           -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
           -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
@@ -60,10 +70,10 @@ jobs:
         terraform plan \
           -out azfunc.tfplan \
           -input=false \
-          -var="subscription_id=$ARM_SUBSCRIPTION_ID" \
-          -var="tenant_id=$ARM_TENANT_ID" \
-          -var="client_id=$ARM_CLIENT_ID" \
-          -var="client_secret=$ARM_CLIENT_SECRET" 
+          -var="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
+          -var="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
+          -var="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
+          -var="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" 
     - name: Terraform Apply
       shell: bash
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'

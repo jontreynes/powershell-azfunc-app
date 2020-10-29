@@ -26,11 +26,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - uses: Azure/login@v1
+    - name: Login to Get KeyVault Secrets
+      uses: Azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - uses: Azure/get-keyvault-secrets@v1.0
+    - name: Get KeyVault Secrets
+      uses: Azure/get-keyvault-secrets@v1.0
       with:
         keyvault: "simulationchicken"
         secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
@@ -123,11 +125,38 @@ jobs:
       run: ls -R
       working-directory: ./build/dist
 
+    - name: Login to Get KeyVault Secrets
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Get KeyVault Secrets
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: Azure/get-keyvault-secrets@v1.0
+      with:
+        keyvault: "simulationchicken"
+        secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
+      id: get_secret_action
+      
+    - name: Get Deploy Secrets
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      shell: bash
+      run: |
+        echo 'DEPLOY_CREDENTIAL<<EOF' >> $GITHUB_ENV
+        {  >> $GITHUB_ENV
+          "clientId": "${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}",  >> $GITHUB_ENV
+          "clientSecret": "${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}",  >> $GITHUB_ENV
+          "subscriptionId": "${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}",  >> $GITHUB_ENV
+          "tenantId": "${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}"  >> $GITHUB_ENV
+        } >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
+
     - name: Login via Azure CLI
       if: steps.wait-for-build.outputs.conclusion == 'success'
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURERM_SPN }}
+        creds: ${{ env.DEPLOY_CREDENTIAL }}
 
     - name: Azure Functions Action
       if: steps.wait-for-build.outputs.conclusion == 'success'

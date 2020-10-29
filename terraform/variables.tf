@@ -76,7 +76,7 @@ variable "function_apps" {
     client_affinity_enabled = bool
     enabled                 = bool
     https_only              = bool
-    assign_identity         = bool
+    assign_identity         = string
     user_ids                = list(string)
     version                 = string
     enable_monitoring       = bool

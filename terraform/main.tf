@@ -225,7 +225,7 @@ resource "azurerm_function_app" "this" {
   }
 
   dynamic "identity" {
-    for_each = coalesce(lookup(each.value, "assign_identity"), false) == true ? list(lookup(each.value, "assign_identity", false)) : []
+    for_each = coalesce(lookup(each.value, "assign_identity"), false) != false ? list(lookup(each.value, "assign_identity", false)) : []
     content {
       type         = lookup(each.value, "assign_identity", null)
       identity_ids = lookup(each.value, "user_ids", null)

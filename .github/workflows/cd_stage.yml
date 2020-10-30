@@ -9,7 +9,40 @@ on:
       - stage_config
 
 jobs:
+  checks:
+    name: 'Check Prerequisites'
+    runs-on: ubuntu-latest
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./
+
+    # wait on continuous deployment for dev
+    - name: Wait for Dev to Succeed
+      uses: fountainhead/action-wait-for-check@v1.0.0
+      id: wait-for-dev
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        checkName: 'Deploy Dev Infra'
+        ref: a4211c9c23b37f524fee6dd38bccb9d58bd1af37
+        timeoutSeconds: 30
+        intervalSeconds: 10
+
+    # wait on continuous deployment for dev
+    - name: Wait for Dev to Succeed
+      uses: fountainhead/action-wait-for-check@v1.0.0
+      id: wait-for-dev
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        checkName: 'Deploy Dev App'
+        ref: a4211c9c23b37f524fee6dd38bccb9d58bd1af37
+        timeoutSeconds: 30
+        intervalSeconds: 10
+
   terraform:
+    needs: checks
     name: 'Deploy Stage Infra'
     runs-on: ubuntu-latest        # recommend using runners for separate environments (with msi on environment storage account container)
     env:
@@ -25,6 +58,7 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v2
+
 
     - name: Download artifact package
       # if: steps.wait-for-build.outputs.conclusion == 'success'

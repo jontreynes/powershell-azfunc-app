@@ -32,7 +32,7 @@ jobs:
 
     - name: Wait for Continuous Integration Infra to Succeed
       uses: fountainhead/action-wait-for-check@v1.0.0
-      id: wait-for-build
+      id: wait-for-build-infra
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Package Terraform'
@@ -42,7 +42,7 @@ jobs:
 
     - name: Wait for Continuous Integration App to Succeed
       uses: fountainhead/action-wait-for-check@v1.0.0
-      id: wait-for-build
+      id: wait-for-build-app
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Package PowerShell (ubuntu-latest)'
@@ -74,7 +74,7 @@ jobs:
 
 
     - name: Dev Check Failed
-      if: steps.wait-for-dev-infra.outputs.conclusion != 'success'  || steps.wait-for-dev-app.outputs.conclusion != 'success' 
+      if: steps.wait-for-dev-infra.outputs.conclusion != 'success'  || steps.wait-for-dev-app.outputs.conclusion != 'success' || steps.wait-for-build-infra.outputs.conclusion != 'success'  || steps.wait-for-build-app.outputs.conclusion != 'success' 
       run: |
         echo "Error! The Dev Continuous Deployment workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
         exit 64

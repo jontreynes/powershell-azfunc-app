@@ -60,11 +60,11 @@ jobs:
         ref: ${{ env.BUILD_ARTIFACT_SHA }}
         timeoutSeconds: 20
         intervalSeconds: 10
-        
+
     - name: Check if Continuous Integration Failed
-      if: steps.wait-for-build-app.outputs.conclusion != 'success' 
+      if: steps.wait-for-build-infra.outputs.conclusion != 'success' 
       run: |
-        echo "Error! The Continuous Integration workflow has status of [${{steps.wait-for-build-app.outputs.conclusion}}]" 1>&2
+        echo "Error! The Continuous Integration workflow has status of [${{steps.wait-for-build-infra.outputs.conclusion}}]" 1>&2
         exit 64
     - name: Check if Dev Infra Deploy Failed
       if: steps.wait-for-dev-infra.outputs.conclusion != 'success'

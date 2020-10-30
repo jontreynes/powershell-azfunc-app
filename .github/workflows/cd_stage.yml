@@ -3,7 +3,7 @@ name: 'Stage Continuous Deployment'
 on:
   push:
     branches:
-      - stage_config
+    - stage_config
 
 jobs:
   terraform:

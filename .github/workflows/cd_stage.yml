@@ -20,6 +20,14 @@ jobs:
         working-directory: ./
     
     steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Get Build References
+      run: |
+        jq .sha ./buildRef.json
+        jq .runId ./buildRef.json
     # wait on continuous deployment for dev
     - name: Wait for Dev to Succeed
       uses: fountainhead/action-wait-for-check@v1.0.0
@@ -27,11 +35,10 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Deploy Dev Infra'
-        ref: dsffs
+        ref: a4211c9c23b37f524fee6dd38bccb9d58bd1af37
         timeoutSeconds: 30
         intervalSeconds: 10
 
-    # wait on continuous deployment for dev
     - name: Wait for Dev to Succeed
       uses: fountainhead/action-wait-for-check@v1.0.0
       id: wait-for-dev-app

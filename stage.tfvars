@@ -1,6 +1,6 @@
 resource_group_name  = "kvapp1027stage"
 location             = "eastus"
-storage_account_name = "joreynestest1027"
+storage_account_name = "joreynes1027stage"
 virtual_network_name = "myvnet"
 subnet_name          = "appservice"
 
@@ -26,7 +26,7 @@ function_apps = {
       "FUNCTIONS_EXTENSION_VERSION"      = "~3"
       "FUNCTIONS_WORKER_RUNTIME_VERSION" = "~7"
     }
-    storage_account_name    = "joreynestest1027"
+    storage_account_name    = "joreynes1027stage"
     os_type                 = null
     client_affinity_enabled = null
     enabled                 = null

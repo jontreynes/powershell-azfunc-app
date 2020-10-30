@@ -1,4 +1,4 @@
-name: 'Stage2 Continuous Deployment'
+name: 'Stage Continuous Deployment'
 
 on:
   push:
@@ -93,91 +93,91 @@ jobs:
       run: |
         terraform apply -auto-approve azfunc.tfplan
 
-  # deploy_dev:
-  #   name: 'Deploy Stage App'
-  #   needs: terraform
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     APP_WORKING_DIRECTORY: ./
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #       working-directory: ${{ env.APP_WORKING_DIRECTORY }}
+  deploy_dev:
+    name: 'Deploy Stage App'
+    needs: terraform
+    runs-on: ubuntu-latest
+    env:
+      APP_WORKING_DIRECTORY: ./
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.APP_WORKING_DIRECTORY }}
 
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v2
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
 
-  #   - name: Wait for Continuous Integration to Succeed
-  #     uses: fountainhead/action-wait-for-check@v1.0.0
-  #     id: wait-for-build
-  #     with:
-  #       token: ${{ secrets.GITHUB_TOKEN }}
-  #       checkName: 'Package PowerShell (ubuntu-latest)'
-  #       ref: ${{ github.event.pull_request.head.sha || github.sha }}
-  #       timeoutSeconds: 600
-  #       intervalSeconds: 10
+    - name: Wait for Continuous Integration to Succeed
+      uses: fountainhead/action-wait-for-check@v1.0.0
+      id: wait-for-build
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        checkName: 'Package PowerShell (ubuntu-latest)'
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        timeoutSeconds: 600
+        intervalSeconds: 10
 
-  #   - name: Continuous Integration Failed
-  #     if: steps.wait-for-build.outputs.conclusion != 'success'
-  #     run: |
-  #       echo "Error! $The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
-  #       exit 64
+    - name: Continuous Integration Failed
+      if: steps.wait-for-build.outputs.conclusion != 'success'
+      run: |
+        echo "Error! The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
+        exit 64
 
-  #     # need to pass the sha to download
-  #   - name: Download artifact package
-  #     if: steps.wait-for-build.outputs.conclusion == 'success'
-  #     uses: dawidd6/action-download-artifact@v2
-  #     with:
-  #       github_token: ${{secrets.GITHUB_TOKEN}}
-  #       workflow: ci.yaml
-  #       branch: master
-  #       name: build-package
-  #       path: ./build/dist
+      # need to pass the sha to download
+    - name: Download artifact package
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        workflow: ci.yaml
+        branch: master      #get the runid fetch from buildRef.json
+        name: app-build-package
+        path: ./build/dist
 
-  #   - name: Display structure of downloaded files
-  #     if: steps.wait-for-build.outputs.conclusion == 'success'
-  #     run: ls -R
-  #     working-directory: ./build/dist
+    - name: Display structure of downloaded files
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      run: ls -R
+      working-directory: ./build/dist
 
-  #   - name: Login to Get KeyVault Secrets
-  #     if: steps.wait-for-build.outputs.conclusion == 'success'
-  #     uses: Azure/login@v1
-  #     with:
-  #       creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Login to Get KeyVault Secrets
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  #   - name: Get KeyVault Secrets
-  #     if: steps.wait-for-build.outputs.conclusion == 'success'
-  #     uses: Azure/get-keyvault-secrets@v1.0
-  #     with:
-  #       keyvault: "simulationchicken"
-  #       secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
-  #     id: get_secret_action
+    - name: Get KeyVault Secrets
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: Azure/get-keyvault-secrets@v1.0
+      with:
+        keyvault: "simulationchicken"
+        secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
+      id: get_secret_action
       
-  #   - name: Get Deploy Secrets
-  #     if: steps.wait-for-build.outputs.conclusion == 'success'
-  #     run: |
-  #       echo 'DEPLOY_CREDENTIAL<<EOF' >> $GITHUB_ENV
-  #       echo '{' >> $GITHUB_ENV
-  #       echo '"clientId": "${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}",'  >> $GITHUB_ENV
-  #       echo '"clientSecret": "${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}",'  >> $GITHUB_ENV
-  #       echo '"subscriptionId": "${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}",'  >> $GITHUB_ENV
-  #       echo '"tenantId": "${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}"'  >> $GITHUB_ENV
-  #       echo '}' >> $GITHUB_ENV
-  #       echo 'EOF' >> $GITHUB_ENV
+    - name: Get Deploy Secrets
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      run: |
+        echo 'DEPLOY_CREDENTIAL<<EOF' >> $GITHUB_ENV
+        echo '{' >> $GITHUB_ENV
+        echo '"clientId": "${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}",'  >> $GITHUB_ENV
+        echo '"clientSecret": "${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}",'  >> $GITHUB_ENV
+        echo '"subscriptionId": "${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}",'  >> $GITHUB_ENV
+        echo '"tenantId": "${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}"'  >> $GITHUB_ENV
+        echo '}' >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
 
-  #   - name: Login via Azure CLI
-  #     if: steps.wait-for-build.outputs.conclusion == 'success'
-  #     uses: azure/login@v1
-  #     with:
-  #       creds: ${{ env.DEPLOY_CREDENTIAL }}
+    - name: Login via Azure CLI
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: azure/login@v1
+      with:
+        creds: ${{ env.DEPLOY_CREDENTIAL }}
 
-  #   - name: Azure Functions Action
-  #     if: steps.wait-for-build.outputs.conclusion == 'success'
-  #     uses: Azure/functions-action@v1.1.5
-  #     with:
-  #       app-name: mykvapp1027stage
-  #       # Path to package or folder. *.zip or a folder to deploy
-  #       package: ./build/dist
-  #       # slot-name: # optional
-  #       # Publish profile (*.publishsettings) file contents with web deploy secrets
+    - name: Azure Functions Action
+      if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: Azure/functions-action@v1.1.5
+      with:
+        app-name: mykvapp1027stage
+        # Path to package or folder. *.zip or a folder to deploy
+        package: ./build/dist
+        # slot-name: # optional
+        # Publish profile (*.publishsettings) file contents with web deploy secrets

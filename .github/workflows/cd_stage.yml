@@ -71,8 +71,6 @@ jobs:
         timeoutSeconds: 30
         intervalSeconds: 10
 
-
-
     - name: Dev Check Failed
       if: steps.wait-for-dev-infra.outputs.conclusion != 'success'  || steps.wait-for-dev-app.outputs.conclusion != 'success' || steps.wait-for-build-infra.outputs.conclusion != 'success'  || steps.wait-for-build-app.outputs.conclusion != 'success' 
       run: |
@@ -113,7 +111,6 @@ jobs:
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: ci.yaml
-        # branch: master    # todo runId needs to be updated - fetch from buildRef.json
         run_id: ${{ env.BUILD_ARTIFACT_RUN_ID }}
         name: tf-build-package
         path: ./${{ env.TF_ACTION_WORKING_DIR }}
@@ -176,12 +173,13 @@ jobs:
       run: |
         terraform apply -auto-approve azfunc.tfplan
 
-  deploy_dev:
+  deploy_stage:
     name: 'Deploy Stage App'
     needs: terraform
     runs-on: ubuntu-latest
     env:
       APP_WORKING_DIRECTORY: ./
+      ARTIFACT_DIRECTORY: ./build/dist
     defaults:
       run:
         shell: bash
@@ -193,47 +191,34 @@ jobs:
 
     - name: Get Build References
       run: |
-        #todo pass function app name
         # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
-
-        echo "BUILD_ARTIFACT_SHA=$(jq .sha ./buildRef.json | tr -d \")" >> $GITHUB_ENV
         echo "BUILD_ARTIFACT_RUN_ID=$(jq .runId ./buildRef.json | tr -d \")" >> $GITHUB_ENV
-
-        echo "BUILD_ARTIFACT_SHA is [${{ env.BUILD_ARTIFACT_SHA }}]"
         echo "BUILD_ARTIFACT_RUN_ID is [${{ env.BUILD_ARTIFACT_RUN_ID }}]"
 
-
-
-    - name: Continuous Integration Failed
-      if: steps.wait-for-build.outputs.conclusion != 'success'
+    - name: Get Azure Function App Name
       run: |
-        echo "Error! The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
-        exit 64
+        echo "AZURE_FUNCTION_APP_NAME=$(jq .app_name ./appName.json | tr -d \")" >> $GITHUB_ENV
+        echo "AZURE_FUNCTION_APP_NAME is [${{ env.AZURE_FUNCTION_APP_NAME }}]"
 
-      # need to pass the sha to download
     - name: Download artifact package
-      if: steps.wait-for-build.outputs.conclusion == 'success'
       uses: dawidd6/action-download-artifact@v2
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: ci.yaml
-        branch: master      #get the runId fetch from buildRef.json
+        run_id: ${{ env.BUILD_ARTIFACT_RUN_ID }}
         name: app-build-package
-        path: ./build/dist
+        path: ./${{ env.ARTIFACT_DIRECTORY }}
 
     - name: Display structure of downloaded files
-      if: steps.wait-for-build.outputs.conclusion == 'success'
       run: ls -R
-      working-directory: ./build/dist
+      working-directory: ./${{ env.ARTIFACT_DIRECTORY }}
 
     - name: Login to Get KeyVault Secrets
-      if: steps.wait-for-build.outputs.conclusion == 'success'
       uses: Azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Get KeyVault Secrets
-      if: steps.wait-for-build.outputs.conclusion == 'success'
       uses: Azure/get-keyvault-secrets@v1.0
       with:
         keyvault: "simulationchicken"
@@ -241,7 +226,6 @@ jobs:
       id: get_secret_action
       
     - name: Get Deploy Secrets
-      if: steps.wait-for-build.outputs.conclusion == 'success'
       run: |
         echo 'DEPLOY_CREDENTIAL<<EOF' >> $GITHUB_ENV
         echo '{' >> $GITHUB_ENV
@@ -253,17 +237,15 @@ jobs:
         echo 'EOF' >> $GITHUB_ENV
 
     - name: Login via Azure CLI
-      if: steps.wait-for-build.outputs.conclusion == 'success'
       uses: azure/login@v1
       with:
         creds: ${{ env.DEPLOY_CREDENTIAL }}
 
     - name: Azure Functions Action
-      if: steps.wait-for-build.outputs.conclusion == 'success'
       uses: Azure/functions-action@v1.1.5
       with:
-        app-name: mykvapp1027stage
+        app-name: ${{ env.AZURE_FUNCTION_APP_NAME }}
         # Path to package or folder. *.zip or a folder to deploy
-        package: ./build/dist
+        package: ./${{ env.ARTIFACT_DIRECTORY }}
         # slot-name: # optional
         # Publish profile (*.publishsettings) file contents with web deploy secrets

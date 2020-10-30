@@ -169,7 +169,7 @@ jobs:
 
   create_stage_pr:
     name: Create Stage Pull Request # TODO (improvement): Create a PR in dev and update buildRef.json with     
-    needs: [package_powershell, package_terraform]
+    needs: [terraform, deploy_dev]
     runs-on: ubuntu-latest
     defaults:
       run:

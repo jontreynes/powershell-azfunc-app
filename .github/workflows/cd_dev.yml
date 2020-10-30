@@ -9,160 +9,160 @@ on:
     branches:
       - master
 jobs:
-  terraform:
-    name: 'Deploy Dev Infra'
-    runs-on: ubuntu-latest
-    env:
-      TF_ACTION_WORKING_DIR: ./terraform
+  # terraform:
+  #   name: 'Deploy Dev Infra'
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     TF_ACTION_WORKING_DIR: ./terraform
 
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{ env.TF_ACTION_WORKING_DIR }}
+  #   # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #       working-directory: ${{ env.TF_ACTION_WORKING_DIR }}
 
-    steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v2
+  #   steps:
+  #   # Checkout the repository to the GitHub Actions runner
+  #   - name: Checkout
+  #     uses: actions/checkout@v2
 
-    - name: Login to Get KeyVault Secrets
-      uses: Azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #   - name: Login to Get KeyVault Secrets
+  #     uses: Azure/login@v1
+  #     with:
+  #       creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Get KeyVault Secrets
-      uses: Azure/get-keyvault-secrets@v1.0
-      with:
-        keyvault: "simulationchicken"
-        secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
-      id: get_secret_action
+  #   - name: Get KeyVault Secrets
+  #     uses: Azure/get-keyvault-secrets@v1.0
+  #     with:
+  #       keyvault: "simulationchicken"
+  #       secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
+  #     id: get_secret_action
 
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-        terraform_version: 0.12.25
+  #   # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+  #   - name: Setup Terraform
+  #     uses: hashicorp/setup-terraform@v1
+  #     with:
+  #       cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+  #       terraform_version: 0.12.25
 
 
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      run: terraform fmt -check
+  #   # Checks that all Terraform configuration files adhere to a canonical format
+  #   - name: Terraform Format
+  #     run: terraform fmt -check
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      run: |
-        terraform init \
-          -backend-config="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
-          -backend-config="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" \
-          -backend-config="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
-          -backend-config="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
-          -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
-          -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
-          -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
-          -backend-config="key=${{ secrets.STATE_FILE }}"
+  #   # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+  #   - name: Terraform Init
+  #     run: |
+  #       terraform init \
+  #         -backend-config="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
+  #         -backend-config="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" \
+  #         -backend-config="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
+  #         -backend-config="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
+  #         -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
+  #         -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
+  #         -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
+  #         -backend-config="key=${{ secrets.STATE_FILE }}"
 
-    # Generates an execution plan for Terraform
-    - name: Terraform Plan
-      run: |
-        terraform plan \
-          -out azfunc.tfplan \
-          -input=false \
-          -var-file="azurefunctions.dev.tfvars" \
-          -var="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
-          -var="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
-          -var="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
-          -var="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" 
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-      run: |
-        terraform apply -auto-approve azfunc.tfplan
+  #   # Generates an execution plan for Terraform
+  #   - name: Terraform Plan
+  #     run: |
+  #       terraform plan \
+  #         -out azfunc.tfplan \
+  #         -input=false \
+  #         -var-file="azurefunctions.dev.tfvars" \
+  #         -var="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
+  #         -var="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
+  #         -var="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
+  #         -var="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" 
+  #   - name: Terraform Apply
+  #     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+  #     run: |
+  #       terraform apply -auto-approve azfunc.tfplan
 
-  deploy_dev:
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-    name: 'Deploy Dev App'
-    needs: terraform
-    runs-on: ubuntu-latest
-    env:
-      APP_WORKING_DIRECTORY: ./
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{ env.APP_WORKING_DIRECTORY }}
+  # deploy_dev:
+  #   if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+  #   name: 'Deploy Dev App'
+  #   needs: terraform
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     APP_WORKING_DIRECTORY: ./
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #       working-directory: ${{ env.APP_WORKING_DIRECTORY }}
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v2
 
-    - name: Wait for Continuous Integration to Succeed
-      uses: fountainhead/action-wait-for-check@v1.0.0
-      id: wait-for-build
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        checkName: 'Package PowerShell (ubuntu-latest)'
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
-        timeoutSeconds: 600
-        intervalSeconds: 10
+  #   - name: Wait for Continuous Integration to Succeed
+  #     uses: fountainhead/action-wait-for-check@v1.0.0
+  #     id: wait-for-build
+  #     with:
+  #       token: ${{ secrets.GITHUB_TOKEN }}
+  #       checkName: 'Package PowerShell (ubuntu-latest)'
+  #       ref: ${{ github.event.pull_request.head.sha || github.sha }}
+  #       timeoutSeconds: 600
+  #       intervalSeconds: 10
 
-    - name: Continuous Integration Failed
-      if: steps.wait-for-build.outputs.conclusion != 'success'
-      run: |
-        echo "Error! The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
-        exit 64
+  #   - name: Continuous Integration Failed
+  #     if: steps.wait-for-build.outputs.conclusion != 'success'
+  #     run: |
+  #       echo "Error! The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
+  #       exit 64
 
-    - name: Download artifact package
-      uses: dawidd6/action-download-artifact@v2
-      with:
-        github_token: ${{secrets.GITHUB_TOKEN}}
-        workflow: ci.yaml
-        branch: master
-        name: app-build-package
-        path: ./build/dist
+  #   - name: Download artifact package
+  #     uses: dawidd6/action-download-artifact@v2
+  #     with:
+  #       github_token: ${{secrets.GITHUB_TOKEN}}
+  #       workflow: ci.yaml
+  #       branch: master
+  #       name: app-build-package
+  #       path: ./build/dist
 
-    - name: Display structure of downloaded files
-      run: ls -R
-      working-directory: ./build/dist
+  #   - name: Display structure of downloaded files
+  #     run: ls -R
+  #     working-directory: ./build/dist
 
-    - name: Login to Get KeyVault Secrets
-      uses: Azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #   - name: Login to Get KeyVault Secrets
+  #     uses: Azure/login@v1
+  #     with:
+  #       creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Get KeyVault Secrets
-      uses: Azure/get-keyvault-secrets@v1.0
-      with:
-        keyvault: "simulationchicken"
-        secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
-      id: get_secret_action
+  #   - name: Get KeyVault Secrets
+  #     uses: Azure/get-keyvault-secrets@v1.0
+  #     with:
+  #       keyvault: "simulationchicken"
+  #       secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
+  #     id: get_secret_action
       
-    - name: Get Deploy Secrets
-      run: |
-        echo 'DEPLOY_CREDENTIAL<<EOF' >> $GITHUB_ENV
-        echo '{' >> $GITHUB_ENV
-        echo '"clientId": "${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}",'  >> $GITHUB_ENV
-        echo '"clientSecret": "${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}",'  >> $GITHUB_ENV
-        echo '"subscriptionId": "${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}",'  >> $GITHUB_ENV
-        echo '"tenantId": "${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}"'  >> $GITHUB_ENV
-        echo '}' >> $GITHUB_ENV
-        echo 'EOF' >> $GITHUB_ENV
+  #   - name: Get Deploy Secrets
+  #     run: |
+  #       echo 'DEPLOY_CREDENTIAL<<EOF' >> $GITHUB_ENV
+  #       echo '{' >> $GITHUB_ENV
+  #       echo '"clientId": "${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}",'  >> $GITHUB_ENV
+  #       echo '"clientSecret": "${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}",'  >> $GITHUB_ENV
+  #       echo '"subscriptionId": "${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}",'  >> $GITHUB_ENV
+  #       echo '"tenantId": "${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}"'  >> $GITHUB_ENV
+  #       echo '}' >> $GITHUB_ENV
+  #       echo 'EOF' >> $GITHUB_ENV
 
-    - name: Login via Azure CLI
-      uses: azure/login@v1
-      with:
-        creds: ${{ env.DEPLOY_CREDENTIAL }}
+  #   - name: Login via Azure CLI
+  #     uses: azure/login@v1
+  #     with:
+  #       creds: ${{ env.DEPLOY_CREDENTIAL }}
 
-    - name: Azure Functions Action
-      uses: Azure/functions-action@v1.1.5
-      with:
-        app-name: mykvapp1027
-        package: ./build/dist
-        # slot-name: # optional
-        # Publish profile (*.publishsettings) file contents with web deploy secrets
+  #   - name: Azure Functions Action
+  #     uses: Azure/functions-action@v1.1.5
+  #     with:
+  #       app-name: mykvapp1027
+  #       package: ./build/dist
+  #       # slot-name: # optional
+  #       # Publish profile (*.publishsettings) file contents with web deploy secrets
 
   create_stage_pr:
     name: Create Stage Pull Request # TODO (improvement): Create a PR in dev and update buildRef.json with     
-    needs: [terraform, deploy_dev]
+    # needs: [terraform, deploy_dev]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -172,37 +172,41 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Wait for Continuous Integration to Succeed
-      uses: fountainhead/action-wait-for-check@v1.0.0
-      id: wait-for-build
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        checkName: 'Generate Build Reference'
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
-        timeoutSeconds: 20
-        intervalSeconds: 10
+    # - name: Wait for Continuous Integration to Succeed
+    #   uses: fountainhead/action-wait-for-check@v1.0.0
+    #   id: wait-for-build
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     checkName: 'Generate Build Reference'
+    #     ref: ${{ github.event.pull_request.head.sha || github.sha }}
+    #     timeoutSeconds: 20
+    #     intervalSeconds: 10
 
-    - name: Continuous Integration Failed
-      if: steps.wait-for-build.outputs.conclusion != 'success'
-      run: |
-        echo "Error! The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
-        exit 64
+    # - name: Continuous Integration Failed
+    #   if: steps.wait-for-build.outputs.conclusion != 'success'
+    #   run: |
+    #     echo "Error! The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
+    #     exit 64
 
-    - name: Download artifact package
-      uses: dawidd6/action-download-artifact@v2
-      with:
-        github_token: ${{secrets.GITHUB_TOKEN}}
-        workflow: ci.yaml
-        branch: master
-        name: ref-build-package
-        path: ./build
+    # - name: Download artifact package
+    #   uses: dawidd6/action-download-artifact@v2
+    #   with:
+    #     github_token: ${{secrets.GITHUB_TOKEN}}
+    #     workflow: ci.yaml
+    #     branch: master
+    #     name: ref-build-package
+    #     path: ./build
 
     - name: Checkout Branch
       run: |
+        git status
+        git pull
+        git branch
         git checkout stage_config
         ls -R
         git checkout -b stage_config/auto-pr-${{github.sha}}
-        mv ./build/buildRef.json .
+        touch ./buildRef.json
+        # mv ./build/buildRef.json .
         git add ./buildRef.json
         git commit -am "Auto Commit From Continuous Deployment with sha ${{github.sha}}"
         git push --set-upstream origin stage_config/auto-pr-${{github.sha}}

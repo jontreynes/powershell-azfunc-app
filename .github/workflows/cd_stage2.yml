@@ -23,12 +23,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    # - run: ls -R
+    - run: | 
+      ls -R
+      git status
 
-    # # Checkout to get buildRef and Stage.tfvars
-    # - name: Checkout
-    #   uses: actions/checkout@v2
-    #   ref: master
+    # Checkout to get buildRef and Stage.tfvars
+    - name: Checkout
+      uses: actions/checkout@v2
+      ref: master
 
     - run: | 
         ls -R

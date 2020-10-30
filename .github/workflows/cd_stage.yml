@@ -33,7 +33,7 @@ jobs:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: ci.yaml
         # branch: master    # todo runId needs to be updated - fetch from buildRef.json
-        branch: 338033520
+        run_id: 338033520
         name: tf-build-package
         path: ./${{ env.TF_ACTION_WORKING_DIR }}
 

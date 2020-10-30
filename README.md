@@ -25,9 +25,9 @@ Instead, there only exists configuration files for the infrastructure of the sta
 1. create PR
 
 ## Manual
-As the Create PR from the Workflow Continuous Deployment on Dev is not automated, the manual workflow will be as follows
+As the Create PR from the Workflow Continuous Deployment on Dev is not automated, the manual workflow will be as follows:
 1. Once CI and CD have ran on dev for the commit hash you'd like to move to stage, create a PR
-1. In the pr, update buildRef.json. You can replace buildRef.json by downloading the pipeline artifact from the CI Build Artifact named ref-build-package
+1. In the pr, update buildRef.json. You can replace buildRef.json by downloading the [pipeline artifact](https://github.com/jontreynes/powershell-azfunc-app/actions?query=workflow%3A%22Continuous+Integration%22) from the CI Build Artifact named ref-build-package
 
 # Note:
 If you need to roll back to a previous build artifact, you may do that by updating the buildRef.json

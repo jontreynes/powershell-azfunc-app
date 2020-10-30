@@ -10,8 +10,8 @@ on:
       - master
 
 jobs:
-  test:
-    name: Test
+  package_powershell:
+    name: Package PowerShell
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -52,3 +52,34 @@ jobs:
       with:
         name: build-package
         path: ./build
+
+  package_terraform:
+    name: Package Terraform
+    runs-on: ubuntu-latest
+    env:
+      TF_ACTION_WORKING_DIR: ./terraform
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.TF_ACTION_WORKING_DIR }}
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        terraform_version: 0.12.25
+    
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format
+      run: terraform fmt -check
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: |
+        terraform init -backend=false

@@ -32,6 +32,17 @@ jobs:
 
         echo "Creating a staging directory"
         mkdir build
+        
+        # This file may be used during deployment to refer to
+        # a specfic commit hash on master and workflow run
+        cat << EOF > buildRef.json
+        {
+          "sha": "${{github.sha}}",
+          "runId": "$GITHUB_RUN_ID"
+        }
+        EOF
+
+        cat ./buildRef.json
 
         echo "---------------------------------------------"
         
@@ -95,8 +106,8 @@ jobs:
         echo "Creating a staging directory"
         mkdir build
 
-        #todo echo sha in file
-
+        # This file may be used during deployment to refer to
+        # a specfic commit hash on master and workflow run
         cat << EOF > buildRef.json
         {
           "sha": "${{github.sha}}",

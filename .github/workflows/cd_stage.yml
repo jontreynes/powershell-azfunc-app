@@ -37,7 +37,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Package Terraform'
         ref: ${{ env.BUILD_ARTIFACT_SHA }}
-        timeoutSeconds: 600
+        timeoutSeconds: 20
         intervalSeconds: 10
 
     - name: Wait for Continuous Integration App to Succeed
@@ -47,7 +47,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Package PowerShell (ubuntu-latest)'
         ref: ${{ env.BUILD_ARTIFACT_SHA }}
-        timeoutSeconds: 600
+        timeoutSeconds: 20
         intervalSeconds: 10
 
     # wait on continuous deployment for dev
@@ -58,7 +58,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Deploy Dev Infra'
         ref: ${{ env.BUILD_ARTIFACT_SHA }}
-        timeoutSeconds: 30
+        timeoutSeconds: 20
         intervalSeconds: 10
 
     - name: Wait for Dev App Deploy to Succeed
@@ -68,7 +68,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Deploy Dev App'
         ref: ${{ env.BUILD_ARTIFACT_SHA }}
-        timeoutSeconds: 30
+        timeoutSeconds: 20
         intervalSeconds: 10
 
     - name: Dev Check Failed
@@ -245,7 +245,5 @@ jobs:
       uses: Azure/functions-action@v1.1.5
       with:
         app-name: ${{ env.AZURE_FUNCTION_APP_NAME }}
-        # Path to package or folder. *.zip or a folder to deploy
         package: ./${{ env.ARTIFACT_DIRECTORY }}
         # slot-name: # optional
-        # Publish profile (*.publishsettings) file contents with web deploy secrets

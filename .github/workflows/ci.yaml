@@ -94,11 +94,13 @@ jobs:
         echo "Creating a staging directory"
         mkdir build
 
+        #todo echo sha in file
+        
         echo "---------------------------------------------"
         
         echo "Copying only Terraform artifacts to the staging directory"
-        rsync -av ./terraform ./build/ --exclude=.terraform \
-                                       --exclude=*.tfstate
+        rsync -av ./ ./build/ --exclude=.terraform \
+                              --exclude=*.tfstate
 
         echo "---------------------------------------------"
 

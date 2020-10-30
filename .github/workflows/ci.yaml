@@ -135,9 +135,11 @@ jobs:
         # https://docs.microsoft.com/en-us/azure/azure-functions/deployment-zip-push
         echo "Creating a staging directory"
         mkdir build
-        
+        cd build
+
         # This file may be used during deployment to refer to
         # a specfic commit hash on master and workflow run
+        touch buildRef.json
         cat << EOF > buildRef.json
         {
           "sha": "${{github.sha}}",
@@ -147,7 +149,7 @@ jobs:
         cat ./buildRef.json
         # output all files in staging directory
         echo "The contents of the CI Artifact is below:"
-        ls -R ./build
+        ls -R .
 
     - name: Upload Artifact Build Reference
       uses: actions/upload-artifact@v1

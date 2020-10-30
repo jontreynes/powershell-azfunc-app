@@ -115,7 +115,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Package PowerShell (ubuntu-latest)'
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        ref: master
         timeoutSeconds: 600
         intervalSeconds: 10
 

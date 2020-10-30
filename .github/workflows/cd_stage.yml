@@ -1,0 +1,178 @@
+name: 'continuous_deployment'
+
+on:
+  push:
+    branches:
+      - stage_config
+
+jobs:
+  terraform:
+    name: 'Deploy Stage Infra'
+    runs-on: ubuntu-latest
+    env:
+      TF_ACTION_WORKING_DIR: ./terraform
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - run: ls -R
+
+    # Checkout to get buildRef and Stage.tfvars
+    - name: Checkout
+      uses: actions/checkout@v2
+      ref: refs/heads/stage_config
+
+    - run: ls -R
+
+    - name: Login to Get KeyVault Secrets
+      uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Get KeyVault Secrets
+      uses: Azure/get-keyvault-secrets@v1.0
+      with:
+        keyvault: "simulationchicken"
+        secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
+      id: get_secret_action
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        working-directory: TF_ACTION_WORKING_DIR
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        terraform_version: 0.12.25
+
+
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format
+      working-directory: TF_ACTION_WORKING_DIR
+      run: terraform fmt -check
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      working-directory: TF_ACTION_WORKING_DIR
+      run: |
+        terraform init \
+          -backend-config="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
+          -backend-config="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" \
+          -backend-config="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
+          -backend-config="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
+          -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
+          -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
+          -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
+          -backend-config="key=stage.tfstate"
+
+    # Generates an execution plan for Terraform
+    - name: Terraform Plan
+      working-directory: TF_ACTION_WORKING_DIR
+      run: |
+        terraform plan \
+          -out azfunc.tfplan \
+          -input=false \
+          -var-file="../stage.tfvars"
+          -var="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
+          -var="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
+          -var="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
+          -var="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" 
+    - name: Terraform Apply
+      run: |
+        terraform apply -auto-approve azfunc.tfplan
+
+  # deploy_dev:
+  #   name: 'Deploy Stage App'
+  #   needs: terraform
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     APP_WORKING_DIRECTORY: ./
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #       working-directory: ${{ env.APP_WORKING_DIRECTORY }}
+
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v2
+
+  #   - name: Wait for Continuous Integration to Succeed
+  #     uses: fountainhead/action-wait-for-check@v1.0.0
+  #     id: wait-for-build
+  #     with:
+  #       token: ${{ secrets.GITHUB_TOKEN }}
+  #       checkName: 'Package PowerShell (ubuntu-latest)'
+  #       ref: ${{ github.event.pull_request.head.sha || github.sha }}
+  #       timeoutSeconds: 600
+  #       intervalSeconds: 10
+
+  #   - name: Continuous Integration Failed
+  #     if: steps.wait-for-build.outputs.conclusion != 'success'
+  #     run: |
+  #       echo "Error! $The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
+  #       exit 64
+
+  #     # need to pass the sha to download
+  #   - name: Download artifact package
+  #     if: steps.wait-for-build.outputs.conclusion == 'success'
+  #     uses: dawidd6/action-download-artifact@v2
+  #     with:
+  #       github_token: ${{secrets.GITHUB_TOKEN}}
+  #       workflow: ci.yaml
+  #       branch: master
+  #       name: build-package
+  #       path: ./build/dist
+
+  #   - name: Display structure of downloaded files
+  #     if: steps.wait-for-build.outputs.conclusion == 'success'
+  #     run: ls -R
+  #     working-directory: ./build/dist
+
+  #   - name: Login to Get KeyVault Secrets
+  #     if: steps.wait-for-build.outputs.conclusion == 'success'
+  #     uses: Azure/login@v1
+  #     with:
+  #       creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+  #   - name: Get KeyVault Secrets
+  #     if: steps.wait-for-build.outputs.conclusion == 'success'
+  #     uses: Azure/get-keyvault-secrets@v1.0
+  #     with:
+  #       keyvault: "simulationchicken"
+  #       secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
+  #     id: get_secret_action
+      
+  #   - name: Get Deploy Secrets
+  #     if: steps.wait-for-build.outputs.conclusion == 'success'
+  #     run: |
+  #       echo 'DEPLOY_CREDENTIAL<<EOF' >> $GITHUB_ENV
+  #       echo '{' >> $GITHUB_ENV
+  #       echo '"clientId": "${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}",'  >> $GITHUB_ENV
+  #       echo '"clientSecret": "${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}",'  >> $GITHUB_ENV
+  #       echo '"subscriptionId": "${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}",'  >> $GITHUB_ENV
+  #       echo '"tenantId": "${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}"'  >> $GITHUB_ENV
+  #       echo '}' >> $GITHUB_ENV
+  #       echo 'EOF' >> $GITHUB_ENV
+
+  #   - name: Login via Azure CLI
+  #     if: steps.wait-for-build.outputs.conclusion == 'success'
+  #     uses: azure/login@v1
+  #     with:
+  #       creds: ${{ env.DEPLOY_CREDENTIAL }}
+
+  #   - name: Azure Functions Action
+  #     if: steps.wait-for-build.outputs.conclusion == 'success'
+  #     uses: Azure/functions-action@v1.1.5
+  #     with:
+  #       app-name: mykvapp1027stage
+  #       # Path to package or folder. *.zip or a folder to deploy
+  #       package: ./build/dist
+  #       # slot-name: # optional
+  #       # Publish profile (*.publishsettings) file contents with web deploy secrets

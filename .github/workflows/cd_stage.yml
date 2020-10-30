@@ -106,7 +106,6 @@ jobs:
         echo "BUILD_ARTIFACT_RUN_ID is [${{ env.BUILD_ARTIFACT_RUN_ID }}]"
 
     - name: Download artifact package
-      # if: steps.wait-for-build.outputs.conclusion == 'success'
       uses: dawidd6/action-download-artifact@v2
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
@@ -174,6 +173,7 @@ jobs:
         terraform apply -auto-approve azfunc.tfplan
 
   deploy_stage:
+    if: github.ref == 'refs/heads/stage_config' && github.event_name == 'push'
     name: 'Deploy Stage App'
     needs: terraform
     runs-on: ubuntu-latest

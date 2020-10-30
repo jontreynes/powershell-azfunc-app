@@ -26,8 +26,13 @@ jobs:
 
     - name: Get Build References
       run: |
-        jq .sha ./buildRef.json
-        jq .runId ./buildRef.json
+        # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
+
+        echo "BUILD_ARTIFACT_SHA=$(jq .sha ./buildRef.json | tr -d \")" >> $GITHUB_ENV
+        echo "BUILD_ARTIFACT_RUN_ID=$(jq .runId ./buildRef.json | tr -d \")" >> $GITHUB_ENV
+
+        echo $BUILD_ARTIFACT_RUN_ID
+        
     # wait on continuous deployment for dev
     - name: Wait for Dev to Succeed
       uses: fountainhead/action-wait-for-check@v1.0.0

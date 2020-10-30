@@ -37,7 +37,12 @@ jobs:
         echo "---------------------------------------------"
         
         echo "Copying only Azure Function artifacts to the staging directory"
-        rsync -av . ./build/ --exclude=.vscode --exclude=.gitignore --exclude=.terraform --exclude=.funcignore --exclude=terraform --exclude=build
+        rsync -av . ./build/ --exclude=.vscode \
+                             --exclude=.git* \
+                             --exclude=.terraform \
+                             --exclude=.funcignore \
+                             --exclude=terraform \
+                             --exclude=build
 
         echo "---------------------------------------------"
 

@@ -197,18 +197,18 @@ jobs:
         name: ref-build-package
         path: ./build
 
-    - name: Checkout Branch
-      run: |
-        git status
-        git pull
-        git branch
-        git checkout stage_config
-        ls -R
-        git checkout -b stage_config_auto_pr-${{github.sha}}
-        git status
-        mv ./build/buildRef.json .
-        git add ./buildRef.json
-        git commit -am "Auto Commit From Continuous Deployment with sha ${{github.sha}}"
+    # - name: Checkout Branch
+    #   run: |
+    #     git status
+    #     git pull
+    #     git branch
+    #     git checkout stage_config
+    #     ls -R
+    #     git checkout -b stage_config_auto_pr-${{github.sha}}
+    #     git status
+    #     mv ./build/buildRef.json .
+    #     git add ./buildRef.json
+    #     git commit -am "Auto Commit From Continuous Deployment with sha ${{github.sha}}"
 
-        # TODO create PR and authenticate push with bot
-        # git push --set-upstream origin stage_config_auto_pr-${{github.sha}}
+    #     # TODO create PR and authenticate push with bot
+    #     # git push --set-upstream origin stage_config_auto_pr-${{github.sha}}

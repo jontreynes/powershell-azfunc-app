@@ -28,7 +28,7 @@ jobs:
     # Checkout to get buildRef and Stage.tfvars
     - name: Checkout
       uses: actions/checkout@v2
-      ref: refs/heads/stage_config
+      ref: master
 
     - run: ls -R
 

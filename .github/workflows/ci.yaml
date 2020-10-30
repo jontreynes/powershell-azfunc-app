@@ -100,7 +100,7 @@ jobs:
         cat << EOF > buildRef.json
         {
           "sha": "${{github.sha}}",
-          "runId": "${{github.runId}}"
+          "runId": "$GITHUB_RUN_ID"
         }
         EOF
 

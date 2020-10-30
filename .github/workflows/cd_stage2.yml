@@ -11,7 +11,7 @@ on:
 jobs:
   terraform:
     name: 'Deploy Stage Infra'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest        # recommend using runners for separate environments (with msi on environment storage account container)
     env:
       TF_ACTION_WORKING_DIR: ./terraform
 
@@ -52,19 +52,19 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        working-directory: TF_ACTION_WORKING_DIR
+        working-directory: ./${{ env.TF_ACTION_WORKING_DIR }}
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_version: 0.12.25
 
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
-      working-directory: TF_ACTION_WORKING_DIR
+      working-directory: ./${{ env.TF_ACTION_WORKING_DIR }}
       run: terraform fmt -check
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      working-directory: TF_ACTION_WORKING_DIR
+      working-directory: ./${{ env.TF_ACTION_WORKING_DIR }}
       run: |
         terraform init \
           -backend-config="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
@@ -78,7 +78,7 @@ jobs:
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
-      working-directory: TF_ACTION_WORKING_DIR
+      working-directory: ./${{ env.TF_ACTION_WORKING_DIR }}
       run: |
         terraform plan \
           -out azfunc.tfplan \

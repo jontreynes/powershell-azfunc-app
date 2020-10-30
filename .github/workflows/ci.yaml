@@ -16,7 +16,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
@@ -63,13 +62,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ACTION_WORKING_DIR: ./terraform
-
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
         working-directory: ${{ env.TF_ACTION_WORKING_DIR }}
-
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
@@ -100,6 +96,15 @@ jobs:
         mkdir build
 
         #todo echo sha in file
+
+        cat << EOF > buildRef.json
+        {
+          "sha": "${{github.sha}}",
+          "runId": "${{github.run.number}}"
+        }
+        EOF
+
+        cat ./buildRef.json
         
         echo "---------------------------------------------"
         
@@ -114,9 +119,7 @@ jobs:
         echo "The contents of the CI Artifact is below:"
         ls -R ./build
 
-    # Would be nice to have a pester test here
-
-    - name: Upload Artifact PowerShell Package
+    - name: Upload Artifact Terraform Package
       uses: actions/upload-artifact@v1
       with:
         name: tf-build-package

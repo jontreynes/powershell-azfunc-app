@@ -83,7 +83,7 @@ jobs:
         terraform plan \
           -out azfunc.tfplan \
           -input=false \
-          -var-file="../stage.tfvars"
+          -var-file="../stage.tfvars" \
           -var="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
           -var="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
           -var="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \

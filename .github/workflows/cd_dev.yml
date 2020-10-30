@@ -204,11 +204,12 @@ jobs:
         git branch
         git checkout stage_config
         ls -R
-        git checkout -b stage_config/auto-pr-${{github.sha}}
+        git checkout -b stage_config_auto_pr-${{github.sha}}
+        git status
         touch ./buildRef.json
         # mv ./build/buildRef.json .
         git add ./buildRef.json
         git commit -am "Auto Commit From Continuous Deployment with sha ${{github.sha}}"
-        git push --set-upstream origin stage_config/auto-pr-${{github.sha}}
+        git push --set-upstream origin stage_config_auto_pr-${{github.sha}}
 
         # TODO create PR

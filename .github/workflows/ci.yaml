@@ -87,3 +87,29 @@ jobs:
     - name: Terraform Validate
       run: |
         terraform validate
+
+    - name: Stage Prep
+      shell: bash
+      run: |
+        echo "Creating a staging directory"
+        mkdir build
+
+        echo "---------------------------------------------"
+        
+        echo "Copying only Terraform artifacts to the staging directory"
+        rsync -av ./terraform ./build/ --exclude=.terraform \
+                                       --exclude=*.tfstate
+
+        echo "---------------------------------------------"
+
+        # output all files in staging directory
+        echo "The contents of the CI Artifact is below:"
+        ls -R ./build
+
+    # Would be nice to have a pester test here
+
+    - name: Upload Artifact PowerShell Package
+      uses: actions/upload-artifact@v1
+      with:
+        name: tf-build-package
+        path: ./build

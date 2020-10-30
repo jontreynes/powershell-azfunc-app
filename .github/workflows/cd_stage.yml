@@ -90,6 +90,7 @@ jobs:
           -var="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/stage_config' && github.event_name == 'push'
+      working-directory: ./${{ env.TF_ACTION_WORKING_DIR }}
       run: |
         terraform apply -auto-approve azfunc.tfplan
 

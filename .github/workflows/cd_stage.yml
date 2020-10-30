@@ -115,7 +115,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: 'Package PowerShell (ubuntu-latest)'
-        ref: master
+        ref: a4211c9c23b37f524fee6dd38bccb9d58bd1af37
         timeoutSeconds: 600
         intervalSeconds: 10
 
@@ -132,8 +132,7 @@ jobs:
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: ci.yaml
-        # branch: master      #get the sha fetch from buildRef.json
-        branch: a4211c9c23b37f524fee6dd38bccb9d58bd1af37
+        branch: master      #get the runId fetch from buildRef.json
         name: app-build-package
         path: ./build/dist
 

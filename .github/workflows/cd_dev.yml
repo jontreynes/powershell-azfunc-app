@@ -1,4 +1,4 @@
-name: 'continuous_deployment'
+name: 'Dev Continuous Deployment'
 
 on:
   push:

@@ -30,22 +30,12 @@ jobs:
         echo "BUILD_ARTIFACT_SHA=$(jq .sha ./buildRef.json | tr -d \")" >> $GITHUB_ENV
         echo "BUILD_ARTIFACT_SHA is [${{ env.BUILD_ARTIFACT_SHA }}]"
 
-    - name: Wait for Continuous Integration Infra to Succeed
+    - name: Wait for Continuous Integration to Succeed
       uses: fountainhead/action-wait-for-check@v1.0.0
       id: wait-for-build-infra
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        checkName: 'Package Terraform'
-        ref: ${{ env.BUILD_ARTIFACT_SHA }}
-        timeoutSeconds: 20
-        intervalSeconds: 10
-
-    - name: Wait for Continuous Integration App to Succeed
-      uses: fountainhead/action-wait-for-check@v1.0.0
-      id: wait-for-build-app
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        checkName: 'Package PowerShell (ubuntu-latest)'
+        checkName: 'Generate Build Reference'
         ref: ${{ env.BUILD_ARTIFACT_SHA }}
         timeoutSeconds: 20
         intervalSeconds: 10

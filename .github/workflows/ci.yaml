@@ -156,5 +156,3 @@ jobs:
       with:
         name: ref-build-package
         path: ./${{ env.TF_ACTION_WORKING_DIR }}/build
-
-flhdsklkfsdh

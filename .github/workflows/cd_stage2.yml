@@ -23,74 +23,85 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - run: | 
-        ls -R
-        git status
-
-    # Checkout to get buildRef and Stage.tfvars
-    - name: Checkout
-      uses: actions/checkout@v2
-      ref: master
-
-    - run: | 
-        ls -R
-        git status
-
-    - name: Login to Get KeyVault Secrets
-      uses: Azure/login@v1
+    - name: Download artifact package
+      # if: steps.wait-for-build.outputs.conclusion == 'success'
+      uses: dawidd6/action-download-artifact@v2
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Get KeyVault Secrets
-      uses: Azure/get-keyvault-secrets@v1.0
-      with:
-        keyvault: "simulationchicken"
-        secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
-      id: get_secret_action
-
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        working-directory: TF_ACTION_WORKING_DIR
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-        terraform_version: 0.12.25
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        workflow: ci.yaml
+        branch: master
+        name: tf-build-package
+        path: ./terraform
 
 
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      working-directory: TF_ACTION_WORKING_DIR
-      run: terraform fmt -check
+    # - run: | 
+    #     ls -R
+    #     git status
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      working-directory: TF_ACTION_WORKING_DIR
-      run: |
-        terraform init \
-          -backend-config="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
-          -backend-config="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" \
-          -backend-config="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
-          -backend-config="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
-          -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
-          -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
-          -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
-          -backend-config="key=stage.tfstate"
+    # # Checkout to get buildRef and Stage.tfvars
+    # - name: Checkout
+    #   uses: actions/checkout@v2
+    #   ref: master
 
-    # Generates an execution plan for Terraform
-    - name: Terraform Plan
-      working-directory: TF_ACTION_WORKING_DIR
-      run: |
-        terraform plan \
-          -out azfunc.tfplan \
-          -input=false \
-          -var-file="../stage.tfvars"
-          -var="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
-          -var="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
-          -var="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
-          -var="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" 
-    - name: Terraform Apply
-      run: |
-        terraform apply -auto-approve azfunc.tfplan
+    # - run: | 
+    #     ls -R
+    #     git status
+
+    # - name: Login to Get KeyVault Secrets
+    #   uses: Azure/login@v1
+    #   with:
+    #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # - name: Get KeyVault Secrets
+    #   uses: Azure/get-keyvault-secrets@v1.0
+    #   with:
+    #     keyvault: "simulationchicken"
+    #     secrets: 'ARM-CLIENT-ID, ARM-CLIENT-SECRET, ARM-SUBSCRIPTION-ID, ARM-TENANT-ID'
+    #   id: get_secret_action
+
+    # # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    # - name: Setup Terraform
+    #   uses: hashicorp/setup-terraform@v1
+    #   with:
+    #     working-directory: TF_ACTION_WORKING_DIR
+    #     cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+    #     terraform_version: 0.12.25
+
+
+    # # Checks that all Terraform configuration files adhere to a canonical format
+    # - name: Terraform Format
+    #   working-directory: TF_ACTION_WORKING_DIR
+    #   run: terraform fmt -check
+
+    # # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    # - name: Terraform Init
+    #   working-directory: TF_ACTION_WORKING_DIR
+    #   run: |
+    #     terraform init \
+    #       -backend-config="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
+    #       -backend-config="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" \
+    #       -backend-config="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
+    #       -backend-config="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
+    #       -backend-config="resource_group_name=${{ secrets.STATE_RG }}" \
+    #       -backend-config="storage_account_name=${{ secrets.STATE_STORAGE }}" \
+    #       -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
+    #       -backend-config="key=stage.tfstate"
+
+    # # Generates an execution plan for Terraform
+    # - name: Terraform Plan
+    #   working-directory: TF_ACTION_WORKING_DIR
+    #   run: |
+    #     terraform plan \
+    #       -out azfunc.tfplan \
+    #       -input=false \
+    #       -var-file="../stage.tfvars"
+    #       -var="subscription_id=${{ steps.get_secret_action.outputs.ARM-SUBSCRIPTION-ID }}" \
+    #       -var="tenant_id=${{ steps.get_secret_action.outputs.ARM-TENANT-ID }}" \
+    #       -var="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
+    #       -var="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" 
+    # - name: Terraform Apply
+    #   run: |
+    #     terraform apply -auto-approve azfunc.tfplan
 
   # deploy_dev:
   #   name: 'Deploy Stage App'

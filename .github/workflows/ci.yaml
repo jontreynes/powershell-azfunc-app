@@ -55,7 +55,7 @@ jobs:
     - name: Upload Artifact PowerShell Package
       uses: actions/upload-artifact@v1
       with:
-        name: build-package
+        name: app-build-package
         path: ./build
 
   package_terraform:

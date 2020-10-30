@@ -118,7 +118,7 @@ jobs:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: ci.yaml
         branch: master
-        name: build-package
+        name: app-build-package
         path: ./build/dist
 
     - name: Display structure of downloaded files

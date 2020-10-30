@@ -18,7 +18,8 @@ jobs:
       run:
         shell: bash
         working-directory: ./
-
+    
+    steps:
     # wait on continuous deployment for dev
     - name: Wait for Dev to Succeed
       uses: fountainhead/action-wait-for-check@v1.0.0

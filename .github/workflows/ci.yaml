@@ -100,7 +100,8 @@ jobs:
         
         echo "Copying only Terraform artifacts to the staging directory"
         rsync -av ./ ./build/ --exclude=.terraform \
-                              --exclude=*.tfstate
+                              --exclude=*.tfstate \
+                              --eclude=build
 
         echo "---------------------------------------------"
 

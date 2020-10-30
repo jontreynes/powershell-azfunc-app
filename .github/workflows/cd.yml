@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - users/**
   pull_request:
     branches:
       - master
@@ -44,9 +45,13 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_version: 0.12.25
 
+
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format
+      run: terraform fmt -check
+
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      shell: bash
       run: |
         terraform init \
           -backend-config="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
@@ -58,14 +63,8 @@ jobs:
           -backend-config="container_name=${{ secrets.STATE_CONTAINER }}" \
           -backend-config="key=${{ secrets.STATE_FILE }}"
 
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      shell: bash
-      run: terraform fmt -check
-
     # Generates an execution plan for Terraform
     - name: Terraform Plan
-      shell: bash
       run: |
         terraform plan \
           -out azfunc.tfplan \
@@ -75,10 +74,9 @@ jobs:
           -var="client_id=${{ steps.get_secret_action.outputs.ARM-CLIENT-ID }}" \
           -var="client_secret=${{ steps.get_secret_action.outputs.ARM-CLIENT-SECRET }}" 
     - name: Terraform Apply
-      shell: bash
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       run: |
-        terraform apply azfunc.tfplan
+        terraform apply azfunc.tfplan -auto-approve
 
   deploy_dev:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
@@ -87,6 +85,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_WORKING_DIRECTORY: ./
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.APP_WORKING_DIRECTORY }}
 
     steps:
     - name: Checkout
@@ -104,7 +106,6 @@ jobs:
 
     - name: Continuous Integration Failed
       if: steps.wait-for-build.outputs.conclusion != 'success'
-      shell: bash
       run: |
         echo "Error! $The continuous Integration workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
         exit 64
@@ -140,7 +141,6 @@ jobs:
       
     - name: Get Deploy Secrets
       if: steps.wait-for-build.outputs.conclusion == 'success'
-      shell: bash
       run: |
         echo 'DEPLOY_CREDENTIAL<<EOF' >> $GITHUB_ENV
         echo '{' >> $GITHUB_ENV

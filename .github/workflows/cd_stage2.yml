@@ -24,8 +24,8 @@ jobs:
       uses: actions/checkout@v2
 
     - run: | 
-      ls -R
-      git status
+        ls -R
+        git status
 
     # Checkout to get buildRef and Stage.tfvars
     - name: Checkout

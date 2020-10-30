@@ -60,11 +60,21 @@ jobs:
         ref: ${{ env.BUILD_ARTIFACT_SHA }}
         timeoutSeconds: 20
         intervalSeconds: 10
-
-    - name: Dev Check Failed
-      if: steps.wait-for-dev-infra.outputs.conclusion != 'success'  || steps.wait-for-dev-app.outputs.conclusion != 'success' || steps.wait-for-build-app.outputs.conclusion != 'success' 
+        
+    - name: Check if Continuous Integration Failed
+      if: steps.wait-for-build-app.outputs.conclusion != 'success' 
+      run: |
+        echo "Error! The Continuous Integration workflow has status of [${{steps.wait-for-build-app.outputs.conclusion}}]" 1>&2
+        exit 64
+    - name: Check if Dev Infra Deploy Failed
+      if: steps.wait-for-dev-infra.outputs.conclusion != 'success'
       run: |
         echo "Error! The Dev Continuous Deployment workflow has status of [${{steps.wait-for-build.outputs.conclusion}}]" 1>&2
+        exit 64
+    - name: Check if Dev App Deploy Failed
+      if: steps.wait-for-dev-app.outputs.conclusion != 'success'
+      run: |
+        echo "Error! The Dev Continuous Deployment workflow has status of [${{steps.wait-for-dev-app.outputs.conclusion}}]" 1>&2
         exit 64
 
   terraform:

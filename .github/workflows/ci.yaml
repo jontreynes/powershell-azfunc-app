@@ -120,4 +120,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: tf-build-package
-        path: ./build
+        path: ./${{ env.TF_ACTION_WORKING_DIR }}/build

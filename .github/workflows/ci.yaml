@@ -33,16 +33,7 @@ jobs:
         echo "Creating a staging directory"
         mkdir build
         
-        # This file may be used during deployment to refer to
-        # a specfic commit hash on master and workflow run
-        cat << EOF > buildRef.json
-        {
-          "sha": "${{github.sha}}",
-          "runId": "$GITHUB_RUN_ID"
-        }
-        EOF
 
-        cat ./buildRef.json
 
         echo "---------------------------------------------"
         
@@ -106,16 +97,6 @@ jobs:
         echo "Creating a staging directory"
         mkdir build
 
-        # This file may be used during deployment to refer to
-        # a specfic commit hash on master and workflow run
-        cat << EOF > buildRef.json
-        {
-          "sha": "${{github.sha}}",
-          "runId": "$GITHUB_RUN_ID"
-        }
-        EOF
-
-        cat ./buildRef.json
         
         echo "---------------------------------------------"
         
@@ -134,4 +115,42 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: tf-build-package
+        path: ./${{ env.TF_ACTION_WORKING_DIR }}/build
+
+  build_reference:
+    name: Generate Build Reference
+    needs: [package_powershell, package_terraform]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Stage Prep
+      shell: bash
+      run: |
+        # prepping the Azure Function zipdeploy package
+        # https://docs.microsoft.com/en-us/azure/azure-functions/deployment-zip-push
+        echo "Creating a staging directory"
+        mkdir build
+        
+        # This file may be used during deployment to refer to
+        # a specfic commit hash on master and workflow run
+        cat << EOF > buildRef.json
+        {
+          "sha": "${{github.sha}}",
+          "runId": "$GITHUB_RUN_ID"
+        }
+        EOF
+        cat ./buildRef.json
+        # output all files in staging directory
+        echo "The contents of the CI Artifact is below:"
+        ls -R ./build
+
+    - name: Upload Artifact Build Reference
+      uses: actions/upload-artifact@v1
+      with:
+        name: ref-build-package
         path: ./${{ env.TF_ACTION_WORKING_DIR }}/build

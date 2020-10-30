@@ -76,7 +76,7 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       run: |
-        terraform apply azfunc.tfplan
+        terraform apply azfunc.tfplan -auto-approve
 
   deploy_dev:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'

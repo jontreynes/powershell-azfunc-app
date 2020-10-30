@@ -19,3 +19,6 @@ Instead, there only exists configuration files for the infrastructure of the sta
 1. git push upstream
 1. create PR
 
+
+# Note:
+If you need to roll back to a previous build artifact, you may do that by updating the buildRef.json

@@ -132,7 +132,8 @@ jobs:
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: ci.yaml
-        branch: master      #get the runid fetch from buildRef.json
+        # branch: master      #get the sha fetch from buildRef.json
+        branch: a4211c9c23b37f524fee6dd38bccb9d58bd1af37
         name: app-build-package
         path: ./build/dist
 

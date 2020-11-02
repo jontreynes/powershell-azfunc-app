@@ -102,10 +102,11 @@ jobs:
         }
 
         echo "The branch status is..." 
-        branch_status
+        status=$(branch_status)
+        echo $status
         
         # Stop the workflow if this run is behind HEAD
-        if [ branch_states == "behind" ];
+        if [ $status == "behind" ];
         then
           echo "Error! This an old run. Ensure this is not running from a degraded package. This may overwrite the existing environment" 1>&2
           exit 64

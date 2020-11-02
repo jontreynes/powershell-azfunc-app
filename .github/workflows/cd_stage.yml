@@ -77,6 +77,42 @@ jobs:
         echo "Error! The Dev Continuous Deployment workflow has status of [${{steps.wait-for-dev-app.outputs.conclusion}}]" 1>&2
         exit 64
 
+    - name: Check if this run is behind HEAD
+      run: |
+
+        git fetch
+
+        # check if this branch is behind remote HEAD
+        # https://stackoverflow.com/questions/17719829/check-if-local-git-repo-is-ahead-behind-remote
+        function branch_status() {
+          local a="stage_config" b="origin/stage_config"
+          local base=$( git merge-base $a $b )
+          local aref=$( git rev-parse  $a )
+          local bref=$( git rev-parse  $b )
+
+          if [[ $aref == "$bref" ]]; then
+            echo up-to-date
+          elif [[ $aref == "$base" ]]; then
+            echo behind
+          elif [[ $bref == "$base" ]]; then
+            echo ahead
+          else
+            echo diverged
+          fi
+        }
+
+        echo "The branch status is..." 
+        branch_status
+        
+        # Stop the workflow if this run is behind HEAD
+        if [ branch_states == "behind" ];
+        then
+          echo "Error! This an old run. Ensure this is not running from a degraded package. This may overwrite the existing environment" 1>&2
+          exit 64
+        fi
+        
+        
+
   terraform:
     needs: checks
     name: 'Deploy Stage Infra'
